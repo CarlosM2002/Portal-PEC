@@ -1,0 +1,41 @@
+{% load static %}
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="row mb-5 align-items-stretch">
+          <div class="col-12 col-md-4 mb-4 mb-md-0 footer-column">
+            <div class="footer-banner">
+              <img src="{% static 'images/footer.svg' %}" alt="Banner Facultad de Ciencias" class="img-fluid w-100">
+            </div>
+            <p id="lead">Portal de pasantías de la Escuela de Computación - Universidad Central de Venezuela.</p>
+          </div>
+
+          <div class="col-12 col-md-4 mb-4 mb-md-0 footer-column">
+            <h3><span class="icon-map-marker mr-2"></span>Ubicación</h3>
+            <p>Paseo Los Ilustres, Ciudad Universitaria de Caracas, Edificio del Decanato (Piso 1), Los Chaguaramos, Caracas 1021.</p>
+          </div>
+
+          <div class="col-12 col-md-4 footer-column">
+            <h3>Contáctanos</h3>
+            <div class="footer-social mt-3">
+                <a href="mailto:tu-correo@ejemplo.com"><span class="icon-mail_outline"></span></a>
+
+                <a href="tel:+581234567890"><span class="icon-phone"></span></a>
+
+                <a href="https://www.instagram.com/tu_usuario" target="_blank" rel="noopener noreferrer"><span class="icon-instagram"></span></a>
+              </div>
+            <p class="footer-note">Puedes conocer más sobre nosotros en
+              <a href="{% url 'jobapp:about' %}" class="text-light">Acerca de</a>.
+            </p>
+          </div>
+        </div>
+
+        <div class="row text-center">
+          <div class="col-12">
+            <p class="copyright"><small>Copyright &copy; 2026 Facultad de Ciencias</small></p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+  </div>

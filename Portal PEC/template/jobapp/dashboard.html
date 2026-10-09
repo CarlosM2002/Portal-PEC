@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load get_total_applicant %}
+{% block content %}
+
+<section class="section-hero overlay inner-page bg-image"
+    style="background-image: url('{% static 'images/hero_1.jpg' %}');" id="home-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-7">
+                {% if user.role == 'admin' %}
+                    <h1 class="text-white font-weight-bold">Administrador</h1>
+                    <div class="custom-breadcrumbs">
+                        <a href="{% url 'jobapp:home' %}">Inicio</a> <span class="mx-2 slash">/</span>
+                        <span class="text-white"><strong>Panel de Control</strong></span>
+                    </div>
+                {% elif user.role == 'employer' %}
+                    <h1 class="text-white font-weight-bold">Empresa</h1>
+                    <div class="custom-breadcrumbs">
+                        <a href="{% url 'jobapp:home' %}">Inicio</a> <span class="mx-2 slash">/</span>
+                        <span class="text-white"><strong>Ofertas</strong></span>
+                    </div>
+                {% elif user.role == 'employee' %}
+                    <h1 class="text-white font-weight-bold">Pasante</h1>
+                    <div class="custom-breadcrumbs">
+                        <a href="{% url 'jobapp:home' %}">Inicio</a> <span class="mx-2 slash">/</span>
+                        <span class="text-white"><strong>Ofertas</strong></span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="site-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 mb-5">
+                {% include 'messages.html' %}
+
+                <div class="card">
+                    {% if user.role == "admin" %}
+                    <h5 class="card-header text-center">Panel de Administración</h5>
+                    <div class="card-body">
+                        <div class="mb-3 text-right">
+                            <a href="{% url 'jobapp:admin-report' %}" class="btn btn-primary">Generar reporte</a>
+                        </div>
+                        <div class="row text-center">
+                            <div class="col-md-4 mb-3">
+                                <div class="p-4 bg-light rounded">
+                                    <h3>{{ admin_stats.total_companies }}</h3>
+                                    <p class="mb-0">Empresas</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="p-4 bg-light rounded">
+                                    <h3>{{ admin_stats.total_dependencies }}</h3>
+                                    <p class="mb-0">Dependencias</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="p-4 bg-light rounded">
+                                    <h3>{{ admin_stats.total_employees }}</h3>
+                                    <p class="mb-0">Usuarios candidatos</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row text-center">
+                            <div class="col-md-4 mb-3">
+                                <div class="p-4 bg-light rounded">
+                                    <h3>{{ admin_stats.total_jobs }}</h3>
+                                    <p class="mb-0">Ofertas de trabajo</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="p-4 bg-light rounded">
+                                    <h3>{{ admin_stats.total_applicants }}</h3>
+                                    <p class="mb-0">Postulaciones</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="p-4 bg-light rounded">
+                                    <h3>{{ admin_stats.total_admins }}</h3>
+                                    <p class="mb-0">Administradores</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% if recent_users %}
+                        <h5 class="card-header text-center mt-4">Últimos Usuarios Registrados</h5>
+                        <div class="table-responsive">
+                            <table class="table text-center mt-3">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>Email</th>
+                                        <th>Nombre</th>
+                                        <th>Rol</th>
+                                        <th>Fecha de registro</th>
+                                        <th>Privilegios</th>
+                                        <th>Acciones</th>
+                                        <th>Eliminar cuenta</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for recent in recent_users %}
+                                    <tr id="user_row_{{ recent.id }}">
+                                        <td>{{ recent.email }}</td>
+                                        <td>{{ recent.get_full_name }}</td>
+                                        <td class="text-capitalize">
+                                            {% if recent.role == 'employee' %}
+                                                Pasante
+                                            {% elif recent.role == 'admin' %}
+                                                Administrador
+                                            {% elif recent.role == 'employer' %}
+                                                {% if recent.tipo_empresa == 'dependencia' %}
+                                                    Dependencia
+                                                {% else %}
+                                                    Empresa
+                                                {% endif %}
+                                            {% else %}
+                                                {{ recent.role }}
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ recent.date_joined | date:'M d, Y' }}</td>
+                                        <td>
+                                            {% if recent.role == 'employer' %}
+                                                {% if recent.employer_profile.privilegios %}
+                                                    <span class="badge badge-success">Sí</span>
+                                                {% else %}
+                                                    <span class="badge badge-secondary">No</span>
+                                                {% endif %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if recent.role == 'employer' %}
+                                                {% if recent.employer_profile.privilegios %}
+                                                    <button onclick="call_sw_alert_func('{% url 'jobapp:set-employer-privileges' recent.id 'revoke' %}','{{ recent.id }}','¿Eliminar privilegios a esta empresa?')" class="btn btn-danger btn-sm mb-1">Eliminar</button>
+                                                {% else %}
+                                                    <button onclick="call_sw_alert_func('{% url 'jobapp:set-employer-privileges' recent.id 'grant' %}','{{ recent.id }}','¿Otorgar privilegios a esta empresa?')" class="btn btn-primary btn-sm mb-1">Otorgar</button>
+                                                {% endif %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button onclick="call_sw_alert_func('{% url 'jobapp:delete-user' recent.id %}','{{ recent.id }}','¿Eliminar este perfil y borrar la cuenta?')" class="btn btn-danger btn-sm">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% elif user.role == "employer" %}
+                    <h5 class="card-header text-center">Mis ofertas</h5>
+                    {% if jobs %}
+                    <table class="table text-center mt-5">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Titulo</th>
+                                <th>Fecha de publicación</th>
+                                <th>Fecha de vencimiento</th>
+                                <th>Estado</th>
+                                <th>Solicitantes</th>
+                                <th>Opciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in jobs %}
+                            <tr id="row_{{ job.id }}">
+                                <td class="text-left"><a href="{% url 'jobapp:single-job' job.id %}">{{ job.title }}</a></td>
+                                <td>{{ job.created_at | date:'M d, Y'  }}</td>
+                                <td>{{ job.last_date | date:'M d, Y' }}</td>
+                                <td>
+                                    {% if job.is_published == True %}
+
+                                        <span class="badge badge-info">Published</span>
+
+                                    {% else %}
+
+                                        <span class="badge badge-danger px-2">Pendiente</span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+
+                                    {% get_total_applicant total_applicants job as is_applicant %}
+
+                                    {% if is_applicant %}
+                                    <a href="{% url 'jobapp:applicants' job.id %}">
+                                        <i class="fa fa-users"></i>
+                                        <span class="badge badge-success text-white">
+
+
+                                            {% if is_applicant > 1 %}
+
+
+                                            {% get_total_applicant total_applicants job %} Solicitantes
+
+                                            {% else %}
+
+                                            {% get_total_applicant total_applicants job %} Solicitante
+
+                                            {% endif %}
+
+                                        </span>
+
+                                    </a>
+                                    {% endif %}
+
+                                </td>
+                                <td>
+                                    <a class="btn btn-info btn-sm" href="{% url 'jobapp:edit-job' job.id %}"
+                                        role="button">Editar</a>
+                                    {% if job.is_published == True %}
+                                        {% if job.is_closed == False %}
+                                        <span id="change_job_status_{{ job.id }}">
+                                            <button onclick="call_sw_alert_func('{% url 'jobapp:complete' job.id %}','{{ job.id }}', 'Once Clicked, Your Post Will Marked Completed')" class="text-white btn btn-success btn-sm" >Make Close</button>
+                                        </span>
+                                        {% else %}
+                                        <a class="text-white btn btn-success btn-sm"
+                                        role="button">Closed</a>
+                                        {% endif %}
+                                        {% endif %}
+                                    <button onclick="call_sw_alert_func('{% url 'jobapp:delete' job.id %}','{{ job.id }}','Una vez borres esta oferta, no podrás recuperarla.')" class="btn btn-danger btn-sm">Borrar</button>
+                                    </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p class="m-5">No has publicado ninguna oferta aún. <a href="{% url 'jobapp:create-job' %}">Crea una nueva.</a></p>
+                    {% endif %}
+                    {% elif user.role == "employee" %}
+
+
+                    <ul class="mb-3 nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Ofertas Guardadas</a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Ofertas Aplicadas</a>
+                        </li>
+                      </ul>
+                      <div class="tab-content" id="myTabContent">
+                        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                            <h5 class="card-header text-center">Ofertas marcadas como favoritas</h5>
+                            {% if savedjobs %}
+                            <table class="table text-center mt-5">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>Título de la Oferta</th>
+                                        <th>Fecha de Publicación</th>
+                                        <th>Fecha de Vencimiento</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for job in savedjobs %}
+                                    <tr id="bookmark_row_{{ job.id }}">
+                                        <td><a href="{% url 'jobapp:single-job' job.job.id %}">{{ job.job.title }}</a></td>
+                                        <td>{{ job.created_at | date:'M d, Y'  }}</td>
+                                        <td>{{ job.job.last_date | date:'M d, Y' }}</td>
+                                        <td>
+                                            <button onclick="call_sw_alert_func('{% url 'jobapp:delete-bookmark' job.id %}','{{ job.id }}','Una vez borrada, esta oferta será eliminada de tu lista de favoritas!')" class="btn btn-danger btn-sm">Borrar</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p class="m-5">No has guardado ninguna oferta aún. </p>
+                            {% endif %}
+                        </div>
+                        <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                            <h5 class="card-header text-center">Ofertas en las que has aplicado</h5>
+                            {% if appliedjobs %}
+                            <table class="table text-center mt-5">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>Titulo de la Oferta</th>
+                                        <th>Fecha de Aplicación</th>
+                                        <th>Estado</th>
+                                        <th>Fecha de Vencimiento</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for job in appliedjobs %}
+                                    <tr id="application_row_{{ job.id }}">
+                                        <td><a href="{% url 'jobapp:single-job' job.job.id %}">{{ job.job.title }}</a></td>
+                                        <td>{{ job.created_at | date:'M d, Y'  }}</td>
+                                        <td>
+                                            {% if job.status == 'pending' %}
+                                                <span class="badge badge-warning">Pendiente</span>
+                                            {% elif job.status == 'accepted' %}
+                                                <span class="badge badge-success">Aceptado</span>
+                                            {% else %}
+                                                <span class="badge badge-danger">Rechazado</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ job.job.last_date | date:'M d, Y' }}</td>
+                                        <td>
+                                            <button onclick="call_sw_alert_func('{% url 'jobapp:delete-application' job.id %}','{{ job.id }}','Una vez quitada, esta postulación será eliminada de tu lista de postulaciones!')" class="btn btn-danger btn-sm">Quitar</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p class="m-5">No has aplicado a ninguna oferta aún. </p>
+                            {% endif %}
+                        </div>
+
+                      </div>
+
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="{% static 'js/sweet-alert.js' %}"></script>
+    <script src="{% static 'js/sweet-alert-ajax.js' %}"></script>
+{% endblock %}
+
+

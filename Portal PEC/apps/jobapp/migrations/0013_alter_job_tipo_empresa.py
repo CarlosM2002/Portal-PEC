@@ -1,0 +1,18 @@
+
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('jobapp', '0012_job_priority'),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name='job',
+            name='tipo_empresa',
+            field=models.CharField(blank=True, choices=[('dependencia', 'Dependencia'), ('empresa_externa', 'Empresa')], max_length=20, null=True),
+        ),
+    ]
